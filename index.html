@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Cost Reality — Is Your AI Subscription Worth It?</title>
+<meta name="description" content="Calculate your real AI cost and compare it to hiring humans. Based on 50 days of actual data.">
+<meta property="og:title" content="AI Cost Reality — Is Your AI Subscription Worth It?">
+<meta property="og:description" content="Your monthly AI spend vs hiring a human. Real data, no hype.">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #1a1a28;
+  --accent: #6c63ff;
+  --accent-dim: rgba(108, 99, 255, 0.15);
+  --green: #10b981;
+  --green-dim: rgba(16, 185, 129, 0.15);
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --text: #e8e8ec;
+  --text-dim: #8888a0;
+  --text-faint: #555568;
+  --border: #2a2a3a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Language toggle */
+.lang-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+
+.lang-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* Header */
+header {
+  text-align: center;
+  padding: 3rem 0 2rem;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 0.3rem;
+}
+
+header h1 .highlight { color: var(--accent); }
+
+header .tagline {
+  color: var(--text-dim);
+  font-size: 1rem;
+}
+
+header .data-badge {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.3rem 0.8rem;
+  background: var(--accent-dim);
+  border: 1px solid rgba(108, 99, 255, 0.3);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+/* Subscription picker */
+.section { margin-top: 2.5rem; }
+
+.section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.6rem;
+}
+
+.sub-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.sub-card:hover { border-color: var(--text-faint); }
+.sub-card.selected { border-color: var(--accent); background: var(--accent-dim); }
+
+.sub-card .sc-check {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.sub-card.selected .sc-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.sub-card .sc-info { flex: 1; }
+.sub-card .sc-name { font-size: 0.85rem; font-weight: 600; }
+.sub-card .sc-price { font-size: 0.75rem; color: var(--text-dim); }
+
+/* Custom input */
+.custom-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.custom-row input {
+  flex: 1;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  transition: border-color 0.2s;
+}
+
+.custom-row input:focus { outline: none; border-color: var(--accent); }
+.custom-row input::placeholder { color: var(--text-faint); }
+
+/* Calculate button */
+.btn-calc {
+  display: block;
+  width: 100%;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-calc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3);
+}
+
+.btn-calc:active { transform: translateY(0); }
+
+/* Results */
+#results { display: none; margin-top: 2.5rem; }
+
+.result-hero {
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.result-hero .rh-monthly {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.result-hero .rh-label {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.result-hero .rh-sub {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.result-hero .rh-sub strong {
+  color: var(--text);
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat-card .st-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.stat-card .st-lbl {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.2rem;
+}
+
+/* Comparison section */
+.comparison {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.comparison h3 {
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.comp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-row:last-child { border-bottom: none; }
+
+.comp-row .cr-label { font-size: 0.85rem; }
+.comp-row .cr-value { font-weight: 700; font-family: 'SF Mono', monospace; font-size: 0.9rem; }
+.comp-row .cr-value.savings { color: var(--green); }
+.comp-row .cr-value.expensive { color: var(--red); }
+
+/* Real data section */
+.real-data {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid var(--accent);
+}
+
+.real-data h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.real-data .rd-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+
+.rd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.rd-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+}
+
+.rd-item .rd-num {
+  font-weight: 800;
+  font-family: 'SF Mono', monospace;
+  min-width: 60px;
+  text-align: right;
+}
+
+.rd-item .rd-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+/* Verdict */
+.verdict-box {
+  text-align: center;
+  padding: 1.5rem;
+  background: var(--surface);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.verdict-box .vb-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.verdict-box .vb-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.3rem; }
+.verdict-box .vb-text { font-size: 0.9rem; color: var(--text-dim); }
+
+/* Share */
+.share-row {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.share-btn:hover { transform: translateY(-1px); }
+.share-btn.twitter { background: #1d9bf0; color: white; }
+.share-btn.copy { background: var(--surface-2); color: var(--text); }
+.share-btn.reset { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.footer a { color: var(--accent); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+@media (max-width: 500px) {
+  .sub-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .rd-grid { grid-template-columns: 1fr; }
+  header h1 { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<button class="lang-toggle lang-btn" onclick="toggleLang()" id="lang-btn">日本語</button>
+
+<div class="container">
+
+<header>
+  <h1><span class="highlight">AI Cost</span> Reality</h1>
+  <p class="tagline" data-en="Is your AI subscription worth it?" data-ja="AIサブスク、本当に高い？">Is your AI subscription worth it?</p>
+  <div class="data-badge" data-en="Based on 50 days of real data" data-ja="50日間の実データに基づく">Based on 50 days of real data</div>
+</header>
+
+<div class="section" id="input-section">
+  <div class="section-title" data-en="Your AI Subscriptions" data-ja="使っているAIツール">Your AI Subscriptions</div>
+  <div class="sub-grid" id="sub-grid"></div>
+
+  <div class="custom-row">
+    <input type="text" id="custom-name" placeholder="Other tool name" data-en-ph="Other tool name" data-ja-ph="その他のツール名">
+    <input type="number" id="custom-price" placeholder="$/month" data-en-ph="$/month" data-ja-ph="月額($)">
+  </div>
+
+  <button class="btn-calc" onclick="calculate()" data-en="Calculate My AI Cost" data-ja="AIコストを計算する">Calculate My AI Cost</button>
+</div>
+
+<div id="results">
+  <div class="result-hero" id="result-hero"></div>
+  <div class="stats-grid" id="stats-grid"></div>
+  <div class="comparison" id="comparison"></div>
+  <div class="real-data" id="real-data"></div>
+  <div class="verdict-box" id="verdict-box"></div>
+  <div class="share-row">
+    <button class="share-btn twitter" onclick="shareTwitter()">Share on X</button>
+    <button class="share-btn copy" onclick="copyResult()">Copy Result</button>
+    <button class="share-btn reset" onclick="resetCalc()" data-en="Recalculate" data-ja="再計算">Recalculate</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-en="Real data from" data-ja="データ出典:">Real data from</span>
+  <a href="https://note.com/yurukusa" target="_blank">yurukusa</a> —
+  <span data-en="50 days of non-engineer AI operation" data-ja="非エンジニアによるAI運用50日間">50 days of non-engineer AI operation</span>
+  <br><br>
+  <a href="https://yurukusa.github.io/">More tools</a> &middot;
+  <a href="https://github.com/yurukusa/ai-cost-reality">Source</a>
+</div>
+
+</div>
+
+<script>
+// Subscription data
+const SUBS = [
+  { id: 'chatgpt-plus', name: 'ChatGPT Plus', price: 20 },
+  { id: 'chatgpt-pro', name: 'ChatGPT Pro', price: 200 },
+  { id: 'claude-pro', name: 'Claude Pro', price: 20 },
+  { id: 'claude-max-5x', name: 'Claude Max 5x', price: 100 },
+  { id: 'claude-max-20x', name: 'Claude Max 20x', price: 200 },
+  { id: 'copilot', name: 'GitHub Copilot', price: 10 },
+  { id: 'copilot-pro', name: 'Copilot Pro', price: 19 },
+  { id: 'cursor', name: 'Cursor Pro', price: 20 },
+  { id: 'midjourney-basic', name: 'Midjourney Basic', price: 10 },
+  { id: 'midjourney-standard', name: 'Midjourney Standard', price: 30 },
+  { id: 'windsurf', name: 'Windsurf Pro', price: 15 },
+  { id: 'gemini', name: 'Gemini Advanced', price: 20 }
+];
+
+// Real data from 50 days of operation
+const REAL_DATA = {
+  months: 2,
+  monthlyCost: 200,
+  totalCost: 400,
+  sessions: 3408,
+  hours: 104,
+  commits: 458,
+  tools: 6,
+  articles: 25,
+  games: 5,
+  days: 50,
+  streak: 35
+};
+
+let selected = new Set();
+let lang = 'en';
+let lastResult = null;
+
+// Build subscription grid
+function buildGrid() {
+  const grid = document.getElementById('sub-grid');
+  grid.innerHTML = '';
+  SUBS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'sub-card' + (selected.has(s.id) ? ' selected' : '');
+    card.onclick = () => toggleSub(s.id, card);
+    card.innerHTML =
+      '<div class="sc-check">' + (selected.has(s.id) ? '✓' : '') + '</div>' +
+      '<div class="sc-info">' +
+        '<div class="sc-name">' + s.name + '</div>' +
+        '<div class="sc-price">$' + s.price + '/mo</div>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
+function toggleSub(id, card) {
+  if (selected.has(id)) {
+    selected.delete(id);
+    card.classList.remove('selected');
+    card.querySelector('.sc-check').textContent = '';
+  } else {
+    selected.add(id);
+    card.classList.add('selected');
+    card.querySelector('.sc-check').textContent = '✓';
+  }
+}
+
+function calculate() {
+  let monthly = 0;
+  selected.forEach(id => {
+    const sub = SUBS.find(s => s.id === id);
+    if (sub) monthly += sub.price;
+  });
+
+  const customPrice = parseFloat(document.getElementById('custom-price').value);
+  if (customPrice > 0) monthly += customPrice;
+
+  if (monthly === 0) {
+    alert(lang === 'ja' ? 'ツールを1つ以上選択してください' : 'Select at least one AI tool');
+    return;
+  }
+
+  const annual = monthly * 12;
+  const daily = monthly / 30;
+  const hourly = monthly / (REAL_DATA.hours / REAL_DATA.months);
+  const perSession = monthly / (REAL_DATA.sessions / REAL_DATA.months);
+  const perCommit = monthly / (REAL_DATA.commits / REAL_DATA.months);
+
+  lastResult = { monthly, annual, daily, hourly, perSession, perCommit };
+
+  // Render hero
+  const hero = document.getElementById('result-hero');
+  hero.innerHTML =
+    '<div class="rh-monthly">$' + monthly + '</div>' +
+    '<div class="rh-label">' + t('per month', '月額') + '</div>' +
+    '<div class="rh-sub">$' + annual.toLocaleString() + ' ' + t('per year', '年間') +
+    ' · <strong>$' + daily.toFixed(2) + '</strong> ' + t('per day', '日額') + '</div>';
+
+  // Stats
+  const sg = document.getElementById('stats-grid');
+  sg.innerHTML = '';
+  [
+    { v: '$' + hourly.toFixed(2), l: t('Per Hour of AI', 'AI作業1時間') },
+    { v: '$' + perSession.toFixed(3), l: t('Per Session', '1セッション') },
+    { v: '$' + perCommit.toFixed(2), l: t('Per Commit', '1コミット') }
+  ].forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'stat-card';
+    d.innerHTML = '<div class="st-val">' + s.v + '</div><div class="st-lbl">' + s.l + '</div>';
+    sg.appendChild(d);
+  });
+
+  // Comparison
+  const comp = document.getElementById('comparison');
+  const juniorMonthly = 4000;
+  const freelanceHourly = 75;
+  const freelanceMonthly = freelanceHourly * (REAL_DATA.hours / REAL_DATA.months);
+  const juniorSavings = ((1 - monthly / juniorMonthly) * 100).toFixed(0);
+  const freelanceSavings = ((1 - monthly / freelanceMonthly) * 100).toFixed(0);
+
+  comp.innerHTML =
+    '<h3>' + t('If You Hired a Human Instead', 'もし人間を雇ったら') + '</h3>' +
+    compRow(t('Junior developer', 'ジュニア開発者'), '$' + juniorMonthly.toLocaleString() + '/mo', '') +
+    compRow(t('Freelancer ($75/hr)', 'フリーランサー ($75/時)'), '$' + freelanceMonthly.toLocaleString() + '/mo', '') +
+    compRow(t('Your AI cost', 'あなたのAIコスト'), '$' + monthly + '/mo', '') +
+    compRow(t('vs Junior dev', 'vs ジュニア開発者'), juniorSavings + '% ' + t('cheaper', '安い'), 'savings') +
+    compRow(t('vs Freelancer', 'vs フリーランサー'), freelanceSavings + '% ' + t('cheaper', '安い'), 'savings');
+
+  // Real data
+  const rd = document.getElementById('real-data');
+  rd.innerHTML =
+    '<h3>' + t('What $200/month Actually Produced', '$200/月で実際に何ができたか') + '</h3>' +
+    '<div class="rd-sub">' + t('Real data from 50 days of non-engineer AI operation', '非エンジニアによるAI運用50日間の実データ') + '</div>' +
+    '<div class="rd-grid">' +
+      rdItem('3,408', t('sessions', 'セッション')) +
+      rdItem('104h', t('of AI work', 'のAI作業')) +
+      rdItem('458', t('git commits', 'gitコミット')) +
+      rdItem('6', t('tools built', 'ツール作成')) +
+      rdItem('25+', t('articles written', '記事執筆')) +
+      rdItem('5', t('games shipped', 'ゲーム出荷')) +
+    '</div>';
+
+  // Verdict
+  const vb = document.getElementById('verdict-box');
+  let icon, title, text;
+  if (monthly >= 200) {
+    icon = '🔥'; title = t('All In', 'フルベット');
+    text = t(
+      "You're spending more than most people's phone bill on AI. But at $" + hourly.toFixed(2) + "/hour, you're getting a tireless assistant who never calls in sick.",
+      '多くの人の携帯代よりAIに使っている。でも時給$' + hourly.toFixed(2) + 'で、病欠しないアシスタントが手に入る。'
+    );
+  } else if (monthly >= 100) {
+    icon = '⚡'; title = t('Power User', 'パワーユーザー');
+    text = t(
+      "Serious investment. At $" + daily.toFixed(2) + "/day, you're paying less than a coffee for an AI that works 24/7.",
+      '真剣な投資。1日$' + daily.toFixed(2) + '、コーヒー1杯以下で24時間働くAIが手に入る。'
+    );
+  } else if (monthly >= 30) {
+    icon = '🧪'; title = t('Experimenter', '実験家');
+    text = t(
+      "Testing the waters. $" + monthly + "/month is less than a gym membership. And this AI actually shows up every day.",
+      '水温を確かめている。月$' + monthly + 'はジムの会費より安い。そしてこのAIは毎日ちゃんと来る。'
+    );
+  } else {
+    icon = '🌱'; title = t('Seed Stage', 'シード期');
+    text = t(
+      "$" + monthly + "/month? That's a streaming subscription. Except this one writes code, not cliffhangers.",
+      '月$' + monthly + '？動画サブスクと同じ値段。違いは、こっちはクリフハンガーじゃなくてコードを書くこと。'
+    );
+  }
+  vb.innerHTML =
+    '<div class="vb-icon">' + icon + '</div>' +
+    '<div class="vb-title">' + title + '</div>' +
+    '<div class="vb-text">' + text + '</div>';
+
+  // Show results
+  document.getElementById('input-section').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function compRow(label, value, cls) {
+  return '<div class="comp-row"><span class="cr-label">' + label + '</span><span class="cr-value ' + cls + '">' + value + '</span></div>';
+}
+
+function rdItem(num, desc) {
+  return '<div class="rd-item"><span class="rd-num">' + num + '</span><span class="rd-desc">' + desc + '</span></div>';
+}
+
+function shareTwitter() {
+  if (!lastResult) return;
+  const text = t(
+    'My monthly AI cost: $' + lastResult.monthly + '\n' +
+    "That's $" + lastResult.daily.toFixed(2) + '/day\n' +
+    'A junior dev costs $4,000/month\n\n' +
+    'Check yours:',
+    'AIの月額: $' + lastResult.monthly + '\n' +
+    '1日$' + lastResult.daily.toFixed(2) + '\n' +
+    'ジュニア開発者を雇うと月$4,000\n\n' +
+    'あなたのAIコストは？'
+  );
+  const url = 'https://yurukusa.github.io/ai-cost-reality/';
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(url), '_blank');
+}
+
+function copyResult() {
+  if (!lastResult) return;
+  const text = 'AI Cost Reality\n' +
+    'Monthly: $' + lastResult.monthly + ' ($' + lastResult.daily.toFixed(2) + '/day)\n' +
+    'Per hour of AI: $' + lastResult.hourly.toFixed(2) + '\n' +
+    'Per commit: $' + lastResult.perCommit.toFixed(2) + '\n' +
+    'vs Junior dev: ' + ((1 - lastResult.monthly / 4000) * 100).toFixed(0) + '% cheaper\n' +
+    'https://yurukusa.github.io/ai-cost-reality/';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.share-btn.copy');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function resetCalc() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('input-section').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// i18n
+function t(en, ja) { return lang === 'ja' ? ja : en; }
+
+function toggleLang() {
+  lang = lang === 'en' ? 'ja' : 'en';
+  document.getElementById('lang-btn').textContent = lang === 'ja' ? 'English' : '日本語';
+  document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+
+  // Update all translatable elements
+  document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+    el.textContent = el.getAttribute('data-' + lang);
+  });
+
+  // Update placeholders
+  document.querySelectorAll('[data-' + lang + '-ph]').forEach(el => {
+    el.placeholder = el.getAttribute('data-' + lang + '-ph');
+  });
+}
+
+// Init
+buildGrid();
+</script>
+</body>
+</html>
